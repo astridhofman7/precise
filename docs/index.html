@@ -32,6 +32,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -255,6 +257,23 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-navicon"></span>
+     
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="ReclusteringTCells.html">Reclustering T Cells</a>
+    </li>
+    <li>
+      <a href="TrajectoryAnalysis_CD4_Tcells.html">Trajectory Analysis CD4 T Cells</a>
+    </li>
+  </ul>
+</li>
 <li>
   <a href="about.html">About</a>
 </li>
@@ -263,7 +282,13 @@ $(document).ready(function () {
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/astridhofman7/precise">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -302,7 +327,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2025-01-23
+<strong>Last updated:</strong> 2025-01-24
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -349,13 +374,15 @@ results.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongf697dcb">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomastridhofman7precisetreee3ee74c61b98dae45b232cacad964ad0c00708e5targetblanke3ee74ca">
 <span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>Repository version:</strong> f697dcb
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/astridhofman7/precise/tree/e3ee74c61b98dae45b232cacad964ad0c00708e5" target="_blank">e3ee74c</a>
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongf697dcb"
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomastridhofman7precisetreee3ee74c61b98dae45b232cacad964ad0c00708e5targetblanke3ee74ca"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -364,7 +391,8 @@ and connecting the code version to the results is critical for
 reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version f697dcb.
+The results in this page were generated with repository version
+<a href="https://github.com/astridhofman7/precise/tree/e3ee74c61b98dae45b232cacad964ad0c00708e5" target="_blank">e3ee74c</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -378,7 +406,15 @@ depends on. Below is the status of the Git repository when the results
 were generated:
 </p>
 <pre><code>
-working directory clean
+Untracked files:
+    Untracked:  analysis/core
+    Untracked:  core
+    Untracked:  output/ReclusteringTCells/
+
+Unstaged changes:
+    Modified:   analysis/TrajectoryAnalysis_CD4_Tcells.Rmd
+    Modified:   analysis/_site.yml
+
 </code></pre>
 <p>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not
@@ -423,10 +459,27 @@ Message
 <tbody>
 <tr>
 <td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/astridhofman7/precise/24682d621b632fcbe7c888b443fce01b513e6478/docs/index.html" target="_blank">24682d6</a>
+</td>
+<td>
+astridhofman7
+</td>
+<td>
+2025-01-23
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
 Rmd
 </td>
 <td>
-f697dcb
+<a href="https://github.com/astridhofman7/precise/blob/f697dcbd6b020a511f5fd0e04c7432eb3157d83f/analysis/index.Rmd" target="_blank">f697dcb</a>
 </td>
 <td>
 astridhofman7
