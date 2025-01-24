@@ -1,0 +1,434 @@
+---
+title: "ReclusteringTCells"
+author: "astridhofman7"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+# Set-Up: Libraries, Loading Objects
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(Seurat)
+library(hdf5r)
+library(BiocManager)
+library(limma)
+library(sctransform)
+library(scDblFinder)
+library(patchwork)
+library(cowplot)
+library(scuttle)
+library(SingleCellExperiment)
+library(ggrepel)
+library(EnhancedVolcano)
+library(ggplot2)
+library(tidyverse)
+library(SeuratData)
+library(RColorBrewer)
+library(speckle)
+library(scater)
+library(statmod)
+library(GGally)
+library(reshape2)
+library(data.table)
+library(NMF)
+library(rsvd)
+library(RColorBrewer)
+library(MAST)
+library(pathview)
+library(clusterProfiler)
+library(enrichplot)
+library(ggplot2)
+library(here)
+library(scCustomize)
+
+set.seed(42)
+```
+
+```{r knitr config, include=FALSE, cache=FALSE}
+
+knitr::opts_chunk$set(warning = FALSE)
+
+knitr::opts_chunk$set(message = FALSE)
+
+knitr::opts_chunk$set(cache = FALSE)
+
+knitr::opts_chunk$set(dpi = 600, fig.align = "center")
+
+```
+
+```{r error=TRUE, echo=TRUE}
+#Output paths
+current_file <- "ReclusteringTCells"
+
+output_dir_data <- here::here("output", current_file)
+if (!dir.exists(output_dir_data)) dir.create(output_dir_data, recursive = TRUE)
+
+if (!dir.exists(here::here("docs", "figure"))) dir.create(here::here("docs", "figure"))
+
+output_dir_figs <- here::here("docs", "figure", paste0(current_file, ".Rmd"))
+if (!dir.exists(output_dir_figs)) dir.create(output_dir_figs, recursive = TRUE)
+
+``` 
+
+```{r error=TRUE}
+Reg_vs_Prog <- readRDS("/data/ashofm/PRECISE/Reg_vs_Prog/ExcludingP014/Reg_vs_Prog_Final_Reclustered_exclP014.RDS")
+``` 
+
+##UMAP for Regressors vs. Progressors 
+
+```{r error=TRUE, echo=T, results='hide'}
+new.cluster.ids <- c("Monocytes", "Monocytes", "CD4+ T-Cells", "CD8+ T-Cells", "Natural Killer Cells", "CD4+ T-Cells" ,"B-Cells","Monocytes", "CD8+ T-Cells", "CD4+ T-Cells", "B-Cells", "Natural Killer Cells", "Dendritic Cells", "B-Cells", 
+"Platelets", "Monocytes", "Dendritic Cells")
+Reg_vs_Prog$seurat_clusters <- Reg_vs_Prog$integrated_snn_res.0.4
+length(levels(Reg_vs_Prog$seurat_clusters))
+names(new.cluster.ids) <- levels(Reg_vs_Prog$seurat_clusters)
+Idents(Reg_vs_Prog) <- "seurat_clusters"
+Reg_vs_Prog <- RenameIdents(Reg_vs_Prog, new.cluster.ids)
+```
+
+```{r error=TRUE}
+Reg_vs_Prog$orig.ident <- Idents(Reg_vs_Prog)
+pal <- RColorBrewer::brewer.pal(9, "Dark2")
+labelled <- DimPlot(Reg_vs_Prog, reduction = "umap", pt.size = 0.5, group.by = "orig.ident", label = T, repel = T, cols = pal ) + ggtitle("UMAP of All PBMCs") 
+labelled
+```
+
+```{r error=TRUE}
+
+DimPlot(Reg_vs_Prog, reduction = "umap", group.by = "integrated_snn_res.0.4", label = T)
+
+
+```
+#Subset for Only T Cells 
+
+```{r error=TRUE}
+#Subset for T cells 
+#Clusters 2, 3, 5, 8, and 9 are T cells. 
+
+clusters_to_keep <- c("2", "3", "5", "8", "9")
+Idents(Reg_vs_Prog) <- Reg_vs_Prog$integrated_snn_res.0.4
+
+# Subset the Seurat object based on the clusters
+tcells <- subset(Reg_vs_Prog, idents = clusters_to_keep)
+tcells@assays$RNA
+
+DimPlot(tcells, reduction = "umap")
+```
+#Reclustering of all T cells 
+```{r error=TRUE}
+tcells <- Seurat::FindVariableFeatures(tcells,
+                           selection.method = "vst",
+                          nfeatures = 2000)
+
+#Remove duplicates
+#Select only the cells labelled as a singlet
+tcells <- subset(tcells, scDblFinder.class == "singlet")
+tcells@meta.data$ident <- "tcells"
+#Check to make sure than the doublets have been successfully removed
+table(tcells$scDblFinder.class)
+tcells <- subset(tcells, HTO_classification.global == "Singlet")
+table(tcells$HTO_classification.global)
+
+tcells <- Seurat::SCTransform(tcells)
+
+#Check to see that it worked 
+names(tcells@assays)
+
+#Change back the active assay to RNA
+DefaultAssay(tcells) <- "RNA"
+
+```
+
+```{r error=TRUE}
+Seurat::DimPlot(tcells, reduction = "pca")
+```
+```{r error=TRUE}
+Seurat::ElbowPlot(tcells, ndims = 50)
+```
+```{r error=TRUE, echo=TRUE}
+tcells <- Seurat::RunUMAP(tcells, dims = 1:15)
+Seurat::DimPlot(tcells, reduction = "umap", group.by = "hash.ID")
+Seurat::DimPlot(tcells, reduction = "umap", group.by = "HTO_maxID")
+Seurat::DimPlot(tcells, reduction = "umap", group.by = "HTO_classification.global")
+
+```
+
+```{r error=TRUE}
+#Remove columns with resolution
+metadata_cols <- colnames(tcells@meta.data)
+cols_to_remove <- grep("^RNA_snn_", metadata_cols, value = TRUE)
+tcells@meta.data <- tcells@meta.data[, !(metadata_cols %in% cols_to_remove)]
+
+metadata_cols <- colnames(tcells@meta.data)
+cols_to_remove <- grep("^integrated_snn", metadata_cols, value = TRUE)
+tcells@meta.data <- tcells@meta.data[, !(metadata_cols %in% cols_to_remove)]
+```
+
+```{r error=TRUE}
+#Start reclustering
+tcells <- Seurat::FindNeighbors(tcells, dims = 1:15, reduction = "pca")
+```
+```{r error=TRUE}
+#Testing Resolutions
+names(tcells@assays)
+DefaultAssay(tcells) <- "integrated"
+tcells <- Seurat::FindClusters(tcells, resolution = seq(0.1, 0.8, by=0.1), n.neighbors = 10) 
+table(tcells@meta.data$HTO_classification.global)
+```
+
+```{r error=TRUE}
+library(clustree)
+clustree::clustree(tcells@meta.data[,grep("integrated_snn_res", colnames(tcells@meta.data))],
+                   prefix = "integrated_snn_res.")
+```
+
+
+```{r error=TRUE}
+
+Seurat::DimPlot(tcells, reduction = "umap", group.by = "integrated_snn_res.0.2")
+
+```
+```{r error=TRUE}
+#Set identity of each cell based on resolution of 0.2
+tcells <- Seurat::SetIdent(tcells, value = tcells$integrated_snn_res.0.2)
+DefaultAssay(tcells) <- "RNA"
+#change directory to save
+saveRDS(tcells, here::here(output_dir_data, "tcells_reclustered.rds"))
+```
+
+#CD4 T Cell Subsetting 
+
+```{r error=TRUE}
+DimPlot(tcells, group.by = "integrated_snn_res.0.2", reduction = "umap")
+```
+
+```{r error=TRUE}
+tcells <- NormalizeData(tcells, assay = "ADT", normalization.method = "CLR")
+tcells <- ScaleData(tcells, assay = "ADT")
+
+FeaturePlot_scCustom(tcells, features = c("CD4", "CD8"), reduction = "umap")
+```
+
+```{r error=TRUE}
+FeaturePlot_scCustom(tcells, features = c("CD4.1", "CD8a"), reduction = "umap")
+```
+
+```{r error=TRUE}
+#Subset for T cells 
+#Clusters 0, 2, 4 are CD4+ T cells. 
+
+clusters_to_keep <- c(0,2,4)
+Idents(tcells) <- tcells$integrated_snn_res.0.2
+
+# Subset the Seurat object based on the clusters
+cd4 <- subset(tcells, idents = clusters_to_keep)
+table(Idents(cd4))
+
+DimPlot(cd4, reduction = "umap")
+```
+
+#Reclustering of CD4 T cells
+
+```{r error=TRUE}
+cd4 <- Seurat::FindVariableFeatures(cd4,
+                           selection.method = "vst",
+                          nfeatures = 2000)
+
+#Remove duplicates
+#Select only the cells labelled as a singlet
+cd4 <- subset(cd4, scDblFinder.class == "singlet")
+cd4@meta.data$ident <- "cd4"
+#Check to make sure than the doublets have been successfully removed
+table(cd4$scDblFinder.class)
+cd4 <- subset(cd4, HTO_classification.global == "Singlet")
+table(cd4$HTO_classification.global)
+
+cd4 <- Seurat::SCTransform(cd4)
+
+#Check to see that it worked 
+names(cd4@assays)
+
+#Change back the active assay to RNA
+DefaultAssay(cd4) <- "RNA"
+
+```
+
+```{r error=TRUE}
+Seurat::DimPlot(cd4, reduction = "pca")
+```
+```{r error=TRUE}
+Seurat::ElbowPlot(cd4, ndims = 50)
+```
+```{r error=TRUE, echo=TRUE}
+cd4 <- Seurat::RunUMAP(cd4, dims = 1:15)
+Seurat::DimPlot(cd4, reduction = "umap", group.by = "hash.ID")
+Seurat::DimPlot(cd4, reduction = "umap", group.by = "HTO_maxID")
+Seurat::DimPlot(cd4, reduction = "umap", group.by = "HTO_classification.global")
+
+```
+
+```{r error=TRUE}
+#Remove columns with resolution
+metadata_cols <- colnames(cd4@meta.data)
+cols_to_remove <- grep("^RNA_snn_", metadata_cols, value = TRUE)
+cd4@meta.data <- cd4@meta.data[, !(metadata_cols %in% cols_to_remove)]
+
+metadata_cols <- colnames(cd4@meta.data)
+cols_to_remove <- grep("^integrated_snn", metadata_cols, value = TRUE)
+cd4@meta.data <- cd4@meta.data[, !(metadata_cols %in% cols_to_remove)]
+```
+
+```{r error=TRUE}
+#Start reclustering
+cd4 <- Seurat::FindNeighbors(cd4, dims = 1:15, reduction = "pca")
+```
+```{r error=TRUE}
+#Testing Resolutions
+names(cd4@assays)
+DefaultAssay(cd4) <- "integrated"
+cd4 <- Seurat::FindClusters(cd4, resolution = seq(0.1, 0.8, by=0.1), n.neighbors = 10) 
+table(cd4@meta.data$HTO_classification.global)
+```
+
+```{r error=TRUE}
+library(clustree)
+clustree::clustree(cd4@meta.data[,grep("integrated_snn_res", colnames(cd4@meta.data))],
+                   prefix = "integrated_snn_res.")
+```
+
+
+```{r error=TRUE}
+
+Seurat::DimPlot(cd4, group.by = "integrated_snn_res.0.3")
+
+```
+
+```{r error=TRUE}
+#Set identity of each cell based on resolution of 0.3
+cd4 <- Seurat::SetIdent(cd4, value = cd4$integrated_snn_res.0.3)
+DefaultAssay(cd4) <- "RNA"
+#change directory to save
+saveRDS(cd4, here::here(output_dir_data, "cd4_tcells_reclustered.rds"))
+```
+
+#CD8+ T Cell Reclustering
+
+```{r error=TRUE}
+DimPlot(tcells, group.by = "integrated_snn_res.0.2", reduction = "umap")
+```
+
+```{r error=TRUE}
+FeaturePlot_scCustom(tcells, features = c("CD4", "CD8A"), reduction = "umap")
+```
+
+```{r error=TRUE}
+FeaturePlot_scCustom(tcells, features = c("CD4.1", "CD8a"), reduction = "umap")
+```
+
+```{r error=TRUE}
+#Subset for T cells 
+#Clusters 1, 3, 5 are CD8+ T cells. 
+
+clusters_to_keep <- c(1,3,5)
+Idents(tcells) <- tcells$integrated_snn_res.0.2
+
+# Subset the Seurat object based on the clusters
+cd8 <- subset(tcells, idents = clusters_to_keep)
+table(Idents(cd8))
+
+DimPlot(cd8, reduction = "umap")
+```
+
+#Reclustering of CD8 T cells - I think this could still be improved via integration.
+
+```{r error=TRUE}
+cd8 <- Seurat::FindVariableFeatures(cd8,
+                           selection.method = "vst",
+                          nfeatures = 2000)
+
+#Remove duplicates
+#Select only the cells labelled as a singlet
+cd8 <- subset(cd8, scDblFinder.class == "singlet")
+cd8@meta.data$ident <- "cd8"
+#Check to make sure than the doublets have been successfully removed
+table(cd8$scDblFinder.class)
+cd8 <- subset(cd8, HTO_classification.global == "Singlet")
+table(cd8$HTO_classification.global)
+
+cd8 <- Seurat::SCTransform(cd8)
+
+#Check to see that it worked 
+names(cd8@assays)
+
+#Change back the active assay to RNA
+DefaultAssay(cd8) <- "RNA"
+
+```
+
+```{r error=TRUE}
+Seurat::DimPlot(cd8, reduction = "pca")
+```
+```{r error=TRUE}
+Seurat::ElbowPlot(cd8, ndims = 50)
+```
+```{r error=TRUE, echo=TRUE}
+cd8 <- Seurat::RunUMAP(cd8, dims = 1:15)
+Seurat::DimPlot(cd8, reduction = "umap", group.by = "hash.ID")
+Seurat::DimPlot(cd8, reduction = "umap", group.by = "HTO_maxID")
+Seurat::DimPlot(cd8, reduction = "umap", group.by = "HTO_classification.global")
+
+```
+ 
+```{r error=TRUE}
+#Remove columns with resolution
+metadata_cols <- colnames(cd8@meta.data)
+cols_to_remove <- grep("^RNA_snn_", metadata_cols, value = TRUE)
+cd8@meta.data <- cd8@meta.data[, !(metadata_cols %in% cols_to_remove)]
+
+metadata_cols <- colnames(cd8@meta.data)
+cols_to_remove <- grep("^integrated_snn", metadata_cols, value = TRUE)
+cd8@meta.data <- cd8@meta.data[, !(metadata_cols %in% cols_to_remove)]
+```
+
+```{r error=TRUE}
+#Start reclustering
+cd8 <- Seurat::FindNeighbors(cd8, dims = 1:15, reduction = "pca")
+```
+
+```{r error=TRUE}
+#Testing Resolutions
+names(cd8@assays)
+DefaultAssay(cd8) <- "integrated"
+cd8 <- Seurat::FindClusters(cd8, resolution = seq(0.1, 0.8, by=0.1), n.neighbors = 10) 
+table(cd8@meta.data$HTO_classification.global)
+```
+
+```{r error=TRUE}
+library(clustree)
+clustree::clustree(cd8@meta.data[,grep("integrated_snn_res", colnames(cd8@meta.data))],
+                   prefix = "integrated_snn_res.")
+```
+
+
+```{r error=TRUE}
+
+Seurat::DimPlot(cd8, group.by = "integrated_snn_res.0.1")
+
+```
+
+```{r error=TRUE}
+#Set identity of each cell based on resolution of 0.1
+cd8 <- Seurat::SetIdent(cd8, value = cd8$integrated_snn_res.0.1)
+DefaultAssay(cd8) <- "RNA"
+#change directory to save
+saveRDS(cd8, here::here(output_dir_data, "cd8_tcells_reclustered.rds"))
+```
+
+```{r error=TRUE}
+SessionInfo()
+```
