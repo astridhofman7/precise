@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="astridhofman7" />
+
+
+<title>ReclusteringTCells</title>
+
+<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">precise</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-navicon"></span>
+     
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="ReclusteringTCells.html">Reclustering T Cells</a>
+    </li>
+    <li>
+      <a href="TrajectoryAnalysis_CD4_Tcells.html">Trajectory Analysis CD4 T Cells</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/astridhofman7/precise">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">ReclusteringTCells</h1>
+<h4 class="author">astridhofman7</h4>
+<h4 class="date">24 January, 2025</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2025-01-24
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>precise/</code> <span
+class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20250123code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20250123)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20250123code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20250123)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomastridhofman7precisetree7aa287bb5449395db6b966d55e8e1870fb80e200targetblank7aa287ba">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/astridhofman7/precise/tree/7aa287bb5449395db6b966d55e8e1870fb80e200" target="_blank">7aa287b</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomastridhofman7precisetree7aa287bb5449395db6b966d55e8e1870fb80e200targetblank7aa287ba"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/astridhofman7/precise/tree/7aa287bb5449395db6b966d55e8e1870fb80e200" target="_blank">7aa287b</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Untracked files:
+    Untracked:  analysis/core
+    Untracked:  core
+    Untracked:  output/ReclusteringTCells/
+
+Unstaged changes:
+    Modified:   analysis/TrajectoryAnalysis_CD4_Tcells.Rmd
+    Modified:   analysis/_site.yml
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/ReclusteringTCells.Rmd</code>)
+and HTML (<code>docs/ReclusteringTCells.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/astridhofman7/precise/blob/7aa287bb5449395db6b966d55e8e1870fb80e200/analysis/ReclusteringTCells.Rmd" target="_blank">7aa287b</a>
+</td>
+<td>
+astridhofman7
+</td>
+<td>
+2025-01-24
+</td>
+<td>
+wflow_publish("analysis/ReclusteringTCells.Rmd")
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="set-up-libraries-loading-objects" class="section level1">
+<h1>Set-Up: Libraries, Loading Objects</h1>
+<pre class="r"><code>library(readr)
+library(dplyr)</code></pre>
+<pre><code>
+Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    filter, lag</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(Seurat)</code></pre>
+<pre><code>Loading required package: SeuratObject</code></pre>
+<pre><code>Loading required package: sp</code></pre>
+<pre><code>&#39;SeuratObject&#39; was built under R 4.4.0 but the current version is
+4.4.2; it is recomended that you reinstall &#39;SeuratObject&#39; as the ABI
+for R may have changed</code></pre>
+<pre><code>&#39;SeuratObject&#39; was built with package &#39;Matrix&#39; 1.7.0 but the current
+version is 1.7.1; it is recomended that you reinstall &#39;SeuratObject&#39; as
+the ABI for &#39;Matrix&#39; may have changed</code></pre>
+<pre><code>
+Attaching package: &#39;SeuratObject&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    intersect, t</code></pre>
+<pre class="r"><code>library(hdf5r)
+library(BiocManager)
+library(limma)
+library(sctransform)
+library(scDblFinder)</code></pre>
+<pre><code>Loading required package: SingleCellExperiment</code></pre>
+<pre><code>Loading required package: SummarizedExperiment</code></pre>
+<pre><code>Loading required package: MatrixGenerics</code></pre>
+<pre><code>Loading required package: matrixStats</code></pre>
+<pre><code>
+Attaching package: &#39;matrixStats&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
+
+    count</code></pre>
+<pre><code>
+Attaching package: &#39;MatrixGenerics&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:matrixStats&#39;:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars</code></pre>
+<pre><code>Loading required package: GenomicRanges</code></pre>
+<pre><code>Loading required package: stats4</code></pre>
+<pre><code>Loading required package: BiocGenerics</code></pre>
+<pre><code>
+Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:limma&#39;:
+
+    plotMA</code></pre>
+<pre><code>The following object is masked from &#39;package:SeuratObject&#39;:
+
+    intersect</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    combine, intersect, setdiff, union</code></pre>
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    IQR, mad, sd, var, xtabs</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, table,
+    tapply, union, unique, unsplit, which.max, which.min</code></pre>
+<pre><code>Loading required package: S4Vectors</code></pre>
+<pre><code>
+Attaching package: &#39;S4Vectors&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:hdf5r&#39;:
+
+    values</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    first, rename</code></pre>
+<pre><code>The following object is masked from &#39;package:utils&#39;:
+
+    findMatches</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    expand.grid, I, unname</code></pre>
+<pre><code>Loading required package: IRanges</code></pre>
+<pre><code>
+Attaching package: &#39;IRanges&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:sp&#39;:
+
+    %over%</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    collapse, desc, slice</code></pre>
+<pre><code>Loading required package: GenomeInfoDb</code></pre>
+<pre><code>Loading required package: Biobase</code></pre>
+<pre><code>Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    &#39;browseVignettes()&#39;. To cite Bioconductor, see
+    &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<pre><code>
+Attaching package: &#39;Biobase&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:MatrixGenerics&#39;:
+
+    rowMedians</code></pre>
+<pre><code>The following objects are masked from &#39;package:matrixStats&#39;:
+
+    anyMissing, rowMedians</code></pre>
+<pre><code>
+Attaching package: &#39;SummarizedExperiment&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:Seurat&#39;:
+
+    Assays</code></pre>
+<pre><code>The following object is masked from &#39;package:SeuratObject&#39;:
+
+    Assays</code></pre>
+<pre class="r"><code>library(patchwork)
+library(cowplot)</code></pre>
+<pre><code>
+Attaching package: &#39;cowplot&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:patchwork&#39;:
+
+    align_plots</code></pre>
+<pre class="r"><code>library(scuttle)
+library(SingleCellExperiment)
+library(ggrepel)
+library(EnhancedVolcano)
+library(ggplot2)
+library(tidyverse)</code></pre>
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ lubridate 1.9.3     ✔ tibble    3.2.1
+✔ purrr     1.0.2     ✔ tidyr     1.3.1</code></pre>
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ lubridate::%within%()    masks IRanges::%within%()
+✖ IRanges::collapse()      masks dplyr::collapse()
+✖ Biobase::combine()       masks BiocGenerics::combine(), dplyr::combine()
+✖ matrixStats::count()     masks dplyr::count()
+✖ IRanges::desc()          masks dplyr::desc()
+✖ tidyr::expand()          masks S4Vectors::expand()
+✖ dplyr::filter()          masks stats::filter()
+✖ S4Vectors::first()       masks dplyr::first()
+✖ purrr::flatten_df()      masks hdf5r::flatten_df()
+✖ dplyr::lag()             masks stats::lag()
+✖ BiocGenerics::Position() masks ggplot2::Position(), base::Position()
+✖ purrr::reduce()          masks GenomicRanges::reduce(), IRanges::reduce()
+✖ S4Vectors::rename()      masks dplyr::rename()
+✖ lubridate::second()      masks S4Vectors::second()
+✖ lubridate::second&lt;-()    masks S4Vectors::second&lt;-()
+✖ IRanges::slice()         masks dplyr::slice()
+✖ lubridate::stamp()       masks cowplot::stamp()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre class="r"><code>library(SeuratData)
+library(RColorBrewer)
+library(speckle)
+library(scater)</code></pre>
+<pre><code>
+Attaching package: &#39;scater&#39;
+
+The following object is masked from &#39;package:limma&#39;:
+
+    plotMDS</code></pre>
+<pre class="r"><code>library(statmod)
+library(GGally)</code></pre>
+<pre><code>Registered S3 method overwritten by &#39;GGally&#39;:
+  method from   
+  +.gg   ggplot2</code></pre>
+<pre class="r"><code>library(reshape2)</code></pre>
+<pre><code>
+Attaching package: &#39;reshape2&#39;
+
+The following object is masked from &#39;package:tidyr&#39;:
+
+    smiths</code></pre>
+<pre class="r"><code>library(data.table)</code></pre>
+<pre><code>
+Attaching package: &#39;data.table&#39;
+
+The following objects are masked from &#39;package:reshape2&#39;:
+
+    dcast, melt
+
+The following objects are masked from &#39;package:lubridate&#39;:
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year
+
+The following object is masked from &#39;package:purrr&#39;:
+
+    transpose
+
+The following object is masked from &#39;package:SummarizedExperiment&#39;:
+
+    shift
+
+The following object is masked from &#39;package:GenomicRanges&#39;:
+
+    shift
+
+The following object is masked from &#39;package:IRanges&#39;:
+
+    shift
+
+The following objects are masked from &#39;package:S4Vectors&#39;:
+
+    first, second
+
+The following objects are masked from &#39;package:dplyr&#39;:
+
+    between, first, last</code></pre>
+<pre class="r"><code>library(NMF)</code></pre>
+<pre><code>Loading required package: registry
+Loading required package: rngtools
+Loading required package: cluster
+NMF - BioConductor layer [OK] | Shared memory capabilities [NO: bigmemory] | Cores 2/2
+  To enable shared memory capabilities, try: install.extras(&#39;
+NMF
+&#39;)
+
+Attaching package: &#39;NMF&#39;
+
+The following object is masked from &#39;package:S4Vectors&#39;:
+
+    nrun</code></pre>
+<pre class="r"><code>library(rsvd)
+library(RColorBrewer)
+library(MAST)
+library(pathview)</code></pre>
+<pre><code>
+##############################################################################
+Pathview is an open source software package distributed under GNU General
+Public License version 3 (GPLv3). Details of GPLv3 is available at
+http://www.gnu.org/licenses/gpl-3.0.html. Particullary, users are required to
+formally cite the original Pathview paper (not just mention it) in publications
+or products. For details, do citation(&quot;pathview&quot;) within R.
+
+The pathview downloads and uses KEGG data. Non-academic uses may require a KEGG
+license agreement (details at http://www.kegg.jp/kegg/legal.html).
+##############################################################################</code></pre>
+<pre class="r"><code>library(clusterProfiler)</code></pre>
+<pre><code>
+clusterProfiler v4.12.6 Learn more at https://yulab-smu.top/contribution-knowledge-mining/
+
+Please cite:
+
+Guangchuang Yu, Li-Gen Wang, Yanyan Han and Qing-Yu He.
+clusterProfiler: an R package for comparing biological themes among
+gene clusters. OMICS: A Journal of Integrative Biology. 2012,
+16(5):284-287
+
+Attaching package: &#39;clusterProfiler&#39;
+
+The following object is masked from &#39;package:purrr&#39;:
+
+    simplify
+
+The following object is masked from &#39;package:IRanges&#39;:
+
+    slice
+
+The following object is masked from &#39;package:S4Vectors&#39;:
+
+    rename
+
+The following object is masked from &#39;package:stats&#39;:
+
+    filter</code></pre>
+<pre class="r"><code>library(enrichplot)</code></pre>
+<pre><code>
+Attaching package: &#39;enrichplot&#39;
+
+The following object is masked from &#39;package:GGally&#39;:
+
+    ggtable</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(here)</code></pre>
+<pre><code>here() starts at /data/ashofm/precise</code></pre>
+<pre class="r"><code>library(scCustomize)</code></pre>
+<pre><code>scCustomize v2.1.2
+If you find the scCustomize useful please cite.
+See &#39;samuel-marsh.github.io/scCustomize/articles/FAQ.html&#39; for citation info.</code></pre>
+<pre class="r"><code>set.seed(42)</code></pre>
+<pre class="r"><code>#Output paths
+current_file &lt;- &quot;ReclusteringTCells&quot;
+
+output_dir_data &lt;- here::here(&quot;output&quot;, current_file)
+if (!dir.exists(output_dir_data)) dir.create(output_dir_data, recursive = TRUE)
+
+if (!dir.exists(here::here(&quot;docs&quot;, &quot;figure&quot;))) dir.create(here::here(&quot;docs&quot;, &quot;figure&quot;))
+
+output_dir_figs &lt;- here::here(&quot;docs&quot;, &quot;figure&quot;, paste0(current_file, &quot;.Rmd&quot;))
+if (!dir.exists(output_dir_figs)) dir.create(output_dir_figs, recursive = TRUE)</code></pre>
+<pre class="r"><code>Reg_vs_Prog &lt;- readRDS(&quot;/data/ashofm/PRECISE/Reg_vs_Prog/ExcludingP014/Reg_vs_Prog_Final_Reclustered_exclP014.RDS&quot;)</code></pre>
+<p>##UMAP for Regressors vs. Progressors</p>
+<pre class="r"><code>new.cluster.ids &lt;- c(&quot;Monocytes&quot;, &quot;Monocytes&quot;, &quot;CD4+ T-Cells&quot;, &quot;CD8+ T-Cells&quot;, &quot;Natural Killer Cells&quot;, &quot;CD4+ T-Cells&quot; ,&quot;B-Cells&quot;,&quot;Monocytes&quot;, &quot;CD8+ T-Cells&quot;, &quot;CD4+ T-Cells&quot;, &quot;B-Cells&quot;, &quot;Natural Killer Cells&quot;, &quot;Dendritic Cells&quot;, &quot;B-Cells&quot;, 
+&quot;Platelets&quot;, &quot;Monocytes&quot;, &quot;Dendritic Cells&quot;)
+Reg_vs_Prog$seurat_clusters &lt;- Reg_vs_Prog$integrated_snn_res.0.4
+length(levels(Reg_vs_Prog$seurat_clusters))
+names(new.cluster.ids) &lt;- levels(Reg_vs_Prog$seurat_clusters)
+Idents(Reg_vs_Prog) &lt;- &quot;seurat_clusters&quot;
+Reg_vs_Prog &lt;- RenameIdents(Reg_vs_Prog, new.cluster.ids)</code></pre>
+<pre class="r"><code>Reg_vs_Prog$orig.ident &lt;- Idents(Reg_vs_Prog)
+pal &lt;- RColorBrewer::brewer.pal(9, &quot;Dark2&quot;)
+labelled &lt;- DimPlot(Reg_vs_Prog, reduction = &quot;umap&quot;, pt.size = 0.5, group.by = &quot;orig.ident&quot;, label = T, repel = T, cols = pal ) + ggtitle(&quot;UMAP of All PBMCs&quot;) 
+labelled</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-5-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>DimPlot(Reg_vs_Prog, reduction = &quot;umap&quot;, group.by = &quot;integrated_snn_res.0.4&quot;, label = T)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-6-1.png" width="4200" style="display: block; margin: auto;" />
+#Subset for Only T Cells</p>
+<pre class="r"><code>#Subset for T cells 
+#Clusters 2, 3, 5, 8, and 9 are T cells. 
+
+clusters_to_keep &lt;- c(&quot;2&quot;, &quot;3&quot;, &quot;5&quot;, &quot;8&quot;, &quot;9&quot;)
+Idents(Reg_vs_Prog) &lt;- Reg_vs_Prog$integrated_snn_res.0.4
+
+# Subset the Seurat object based on the clusters
+tcells &lt;- subset(Reg_vs_Prog, idents = clusters_to_keep)
+tcells@assays$RNA</code></pre>
+<pre><code>Assay data with 21570 features for 11228 cells
+First 10 features:
+ OR4F5, OR4F29, OR4F16, SAMD11, NOC2L, KLHL17, PLEKHN1, PERM1, HES4,
+ISG15 </code></pre>
+<pre class="r"><code>DimPlot(tcells, reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-7-1.png" width="4200" style="display: block; margin: auto;" />
+#Reclustering of all T cells</p>
+<pre class="r"><code>tcells &lt;- Seurat::FindVariableFeatures(tcells,
+                           selection.method = &quot;vst&quot;,
+                          nfeatures = 2000)
+
+#Remove duplicates
+#Select only the cells labelled as a singlet
+tcells &lt;- subset(tcells, scDblFinder.class == &quot;singlet&quot;)
+tcells@meta.data$ident &lt;- &quot;tcells&quot;
+#Check to make sure than the doublets have been successfully removed
+table(tcells$scDblFinder.class)</code></pre>
+<pre><code>
+singlet 
+  11228 </code></pre>
+<pre class="r"><code>tcells &lt;- subset(tcells, HTO_classification.global == &quot;Singlet&quot;)
+table(tcells$HTO_classification.global)</code></pre>
+<pre><code>
+Singlet 
+  11228 </code></pre>
+<pre class="r"><code>tcells &lt;- Seurat::SCTransform(tcells)
+
+#Check to see that it worked 
+names(tcells@assays)</code></pre>
+<pre><code>[1] &quot;RNA&quot;                          &quot;HTO&quot;                         
+[3] &quot;ADT&quot;                          &quot;SCT&quot;                         
+[5] &quot;integrated&quot;                   &quot;prediction.score.celltype.l1&quot;
+[7] &quot;prediction.score.celltype.l2&quot; &quot;prediction.score.celltype.l3&quot;</code></pre>
+<pre class="r"><code>#Change back the active assay to RNA
+DefaultAssay(tcells) &lt;- &quot;RNA&quot;</code></pre>
+<pre class="r"><code>Seurat::DimPlot(tcells, reduction = &quot;pca&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-9-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::ElbowPlot(tcells, ndims = 50)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-10-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>tcells &lt;- Seurat::RunUMAP(tcells, dims = 1:15)
+Seurat::DimPlot(tcells, reduction = &quot;umap&quot;, group.by = &quot;hash.ID&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-11-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(tcells, reduction = &quot;umap&quot;, group.by = &quot;HTO_maxID&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-11-2.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(tcells, reduction = &quot;umap&quot;, group.by = &quot;HTO_classification.global&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-11-3.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Remove columns with resolution
+metadata_cols &lt;- colnames(tcells@meta.data)
+cols_to_remove &lt;- grep(&quot;^RNA_snn_&quot;, metadata_cols, value = TRUE)
+tcells@meta.data &lt;- tcells@meta.data[, !(metadata_cols %in% cols_to_remove)]
+
+metadata_cols &lt;- colnames(tcells@meta.data)
+cols_to_remove &lt;- grep(&quot;^integrated_snn&quot;, metadata_cols, value = TRUE)
+tcells@meta.data &lt;- tcells@meta.data[, !(metadata_cols %in% cols_to_remove)]</code></pre>
+<pre class="r"><code>#Start reclustering
+tcells &lt;- Seurat::FindNeighbors(tcells, dims = 1:15, reduction = &quot;pca&quot;)</code></pre>
+<pre class="r"><code>#Testing Resolutions
+names(tcells@assays)</code></pre>
+<pre><code>[1] &quot;RNA&quot;                          &quot;HTO&quot;                         
+[3] &quot;ADT&quot;                          &quot;SCT&quot;                         
+[5] &quot;integrated&quot;                   &quot;prediction.score.celltype.l1&quot;
+[7] &quot;prediction.score.celltype.l2&quot; &quot;prediction.score.celltype.l3&quot;</code></pre>
+<pre class="r"><code>DefaultAssay(tcells) &lt;- &quot;integrated&quot;
+tcells &lt;- Seurat::FindClusters(tcells, resolution = seq(0.1, 0.8, by=0.1), n.neighbors = 10) </code></pre>
+<pre><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9564
+Number of communities: 4
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9338
+Number of communities: 6
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9145
+Number of communities: 7
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9026
+Number of communities: 10
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8916
+Number of communities: 11
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8825
+Number of communities: 11
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8719
+Number of communities: 12
+Elapsed time: 1 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 11228
+Number of edges: 387679
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8631
+Number of communities: 15
+Elapsed time: 1 seconds</code></pre>
+<pre class="r"><code>table(tcells@meta.data$HTO_classification.global)</code></pre>
+<pre><code>
+Singlet 
+  11228 </code></pre>
+<pre class="r"><code>library(clustree)
+clustree::clustree(tcells@meta.data[,grep(&quot;integrated_snn_res&quot;, colnames(tcells@meta.data))],
+                   prefix = &quot;integrated_snn_res.&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-15-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(tcells, reduction = &quot;umap&quot;, group.by = &quot;integrated_snn_res.0.2&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-16-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Set identity of each cell based on resolution of 0.2
+tcells &lt;- Seurat::SetIdent(tcells, value = tcells$integrated_snn_res.0.2)
+DefaultAssay(tcells) &lt;- &quot;RNA&quot;
+#change directory to save
+saveRDS(tcells, here::here(output_dir_data, &quot;tcells_reclustered.rds&quot;))</code></pre>
+<p>#CD4 T Cell Subsetting</p>
+<pre class="r"><code>DimPlot(tcells, group.by = &quot;integrated_snn_res.0.2&quot;, reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-18-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>tcells &lt;- NormalizeData(tcells, assay = &quot;ADT&quot;, normalization.method = &quot;CLR&quot;)
+tcells &lt;- ScaleData(tcells, assay = &quot;ADT&quot;)
+
+FeaturePlot_scCustom(tcells, features = c(&quot;CD4&quot;, &quot;CD8&quot;), reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-19-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>FeaturePlot_scCustom(tcells, features = c(&quot;CD4.1&quot;, &quot;CD8a&quot;), reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-20-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Subset for T cells 
+#Clusters 0, 2, 4 are CD4+ T cells. 
+
+clusters_to_keep &lt;- c(0,2,4)
+Idents(tcells) &lt;- tcells$integrated_snn_res.0.2
+
+# Subset the Seurat object based on the clusters
+cd4 &lt;- subset(tcells, idents = clusters_to_keep)
+table(Idents(cd4))</code></pre>
+<pre><code>
+   0    2    4 
+3417 2232 1011 </code></pre>
+<pre class="r"><code>DimPlot(cd4, reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-21-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<p>#Reclustering of CD4 T cells</p>
+<pre class="r"><code>cd4 &lt;- Seurat::FindVariableFeatures(cd4,
+                           selection.method = &quot;vst&quot;,
+                          nfeatures = 2000)
+
+#Remove duplicates
+#Select only the cells labelled as a singlet
+cd4 &lt;- subset(cd4, scDblFinder.class == &quot;singlet&quot;)
+cd4@meta.data$ident &lt;- &quot;cd4&quot;
+#Check to make sure than the doublets have been successfully removed
+table(cd4$scDblFinder.class)</code></pre>
+<pre><code>
+singlet 
+   6660 </code></pre>
+<pre class="r"><code>cd4 &lt;- subset(cd4, HTO_classification.global == &quot;Singlet&quot;)
+table(cd4$HTO_classification.global)</code></pre>
+<pre><code>
+Singlet 
+   6660 </code></pre>
+<pre class="r"><code>cd4 &lt;- Seurat::SCTransform(cd4)
+
+#Check to see that it worked 
+names(cd4@assays)</code></pre>
+<pre><code>[1] &quot;RNA&quot;                          &quot;HTO&quot;                         
+[3] &quot;ADT&quot;                          &quot;SCT&quot;                         
+[5] &quot;integrated&quot;                   &quot;prediction.score.celltype.l1&quot;
+[7] &quot;prediction.score.celltype.l2&quot; &quot;prediction.score.celltype.l3&quot;</code></pre>
+<pre class="r"><code>#Change back the active assay to RNA
+DefaultAssay(cd4) &lt;- &quot;RNA&quot;</code></pre>
+<pre class="r"><code>Seurat::DimPlot(cd4, reduction = &quot;pca&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-23-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::ElbowPlot(cd4, ndims = 50)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-24-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>cd4 &lt;- Seurat::RunUMAP(cd4, dims = 1:15)
+Seurat::DimPlot(cd4, reduction = &quot;umap&quot;, group.by = &quot;hash.ID&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-25-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(cd4, reduction = &quot;umap&quot;, group.by = &quot;HTO_maxID&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-25-2.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(cd4, reduction = &quot;umap&quot;, group.by = &quot;HTO_classification.global&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-25-3.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Remove columns with resolution
+metadata_cols &lt;- colnames(cd4@meta.data)
+cols_to_remove &lt;- grep(&quot;^RNA_snn_&quot;, metadata_cols, value = TRUE)
+cd4@meta.data &lt;- cd4@meta.data[, !(metadata_cols %in% cols_to_remove)]
+
+metadata_cols &lt;- colnames(cd4@meta.data)
+cols_to_remove &lt;- grep(&quot;^integrated_snn&quot;, metadata_cols, value = TRUE)
+cd4@meta.data &lt;- cd4@meta.data[, !(metadata_cols %in% cols_to_remove)]</code></pre>
+<pre class="r"><code>#Start reclustering
+cd4 &lt;- Seurat::FindNeighbors(cd4, dims = 1:15, reduction = &quot;pca&quot;)</code></pre>
+<pre class="r"><code>#Testing Resolutions
+names(cd4@assays)</code></pre>
+<pre><code>[1] &quot;RNA&quot;                          &quot;HTO&quot;                         
+[3] &quot;ADT&quot;                          &quot;SCT&quot;                         
+[5] &quot;integrated&quot;                   &quot;prediction.score.celltype.l1&quot;
+[7] &quot;prediction.score.celltype.l2&quot; &quot;prediction.score.celltype.l3&quot;</code></pre>
+<pre class="r"><code>DefaultAssay(cd4) &lt;- &quot;integrated&quot;
+cd4 &lt;- Seurat::FindClusters(cd4, resolution = seq(0.1, 0.8, by=0.1), n.neighbors = 10) </code></pre>
+<pre><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9486
+Number of communities: 3
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9169
+Number of communities: 5
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8992
+Number of communities: 7
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8822
+Number of communities: 7
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8676
+Number of communities: 9
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8564
+Number of communities: 10
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8454
+Number of communities: 10
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 6660
+Number of edges: 226908
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8352
+Number of communities: 12
+Elapsed time: 0 seconds</code></pre>
+<pre class="r"><code>table(cd4@meta.data$HTO_classification.global)</code></pre>
+<pre><code>
+Singlet 
+   6660 </code></pre>
+<pre class="r"><code>library(clustree)
+clustree::clustree(cd4@meta.data[,grep(&quot;integrated_snn_res&quot;, colnames(cd4@meta.data))],
+                   prefix = &quot;integrated_snn_res.&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-29-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(cd4, group.by = &quot;integrated_snn_res.0.3&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-30-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Set identity of each cell based on resolution of 0.3
+cd4 &lt;- Seurat::SetIdent(cd4, value = cd4$integrated_snn_res.0.3)
+DefaultAssay(cd4) &lt;- &quot;RNA&quot;
+#change directory to save
+saveRDS(cd4, here::here(output_dir_data, &quot;cd4_tcells_reclustered.rds&quot;))</code></pre>
+<p>#CD8+ T Cell Reclustering</p>
+<pre class="r"><code>DimPlot(tcells, group.by = &quot;integrated_snn_res.0.2&quot;, reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-32-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>FeaturePlot_scCustom(tcells, features = c(&quot;CD4&quot;, &quot;CD8A&quot;), reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-33-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>FeaturePlot_scCustom(tcells, features = c(&quot;CD4.1&quot;, &quot;CD8a&quot;), reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-34-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Subset for T cells 
+#Clusters 1, 3, 5 are CD8+ T cells. 
+
+clusters_to_keep &lt;- c(1,3,5)
+Idents(tcells) &lt;- tcells$integrated_snn_res.0.2
+
+# Subset the Seurat object based on the clusters
+cd8 &lt;- subset(tcells, idents = clusters_to_keep)
+table(Idents(cd8))</code></pre>
+<pre><code>
+   1    3    5 
+2737 1447  384 </code></pre>
+<pre class="r"><code>DimPlot(cd8, reduction = &quot;umap&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-35-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<p>#Reclustering of CD8 T cells - I think this could still be improved
+via integration.</p>
+<pre class="r"><code>cd8 &lt;- Seurat::FindVariableFeatures(cd8,
+                           selection.method = &quot;vst&quot;,
+                          nfeatures = 2000)
+
+#Remove duplicates
+#Select only the cells labelled as a singlet
+cd8 &lt;- subset(cd8, scDblFinder.class == &quot;singlet&quot;)
+cd8@meta.data$ident &lt;- &quot;cd8&quot;
+#Check to make sure than the doublets have been successfully removed
+table(cd8$scDblFinder.class)</code></pre>
+<pre><code>
+singlet 
+   4568 </code></pre>
+<pre class="r"><code>cd8 &lt;- subset(cd8, HTO_classification.global == &quot;Singlet&quot;)
+table(cd8$HTO_classification.global)</code></pre>
+<pre><code>
+Singlet 
+   4568 </code></pre>
+<pre class="r"><code>cd8 &lt;- Seurat::SCTransform(cd8)
+
+#Check to see that it worked 
+names(cd8@assays)</code></pre>
+<pre><code>[1] &quot;RNA&quot;                          &quot;HTO&quot;                         
+[3] &quot;ADT&quot;                          &quot;SCT&quot;                         
+[5] &quot;integrated&quot;                   &quot;prediction.score.celltype.l1&quot;
+[7] &quot;prediction.score.celltype.l2&quot; &quot;prediction.score.celltype.l3&quot;</code></pre>
+<pre class="r"><code>#Change back the active assay to RNA
+DefaultAssay(cd8) &lt;- &quot;RNA&quot;</code></pre>
+<pre class="r"><code>Seurat::DimPlot(cd8, reduction = &quot;pca&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-37-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::ElbowPlot(cd8, ndims = 50)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-38-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>cd8 &lt;- Seurat::RunUMAP(cd8, dims = 1:15)
+Seurat::DimPlot(cd8, reduction = &quot;umap&quot;, group.by = &quot;hash.ID&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-39-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(cd8, reduction = &quot;umap&quot;, group.by = &quot;HTO_maxID&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-39-2.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(cd8, reduction = &quot;umap&quot;, group.by = &quot;HTO_classification.global&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-39-3.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Remove columns with resolution
+metadata_cols &lt;- colnames(cd8@meta.data)
+cols_to_remove &lt;- grep(&quot;^RNA_snn_&quot;, metadata_cols, value = TRUE)
+cd8@meta.data &lt;- cd8@meta.data[, !(metadata_cols %in% cols_to_remove)]
+
+metadata_cols &lt;- colnames(cd8@meta.data)
+cols_to_remove &lt;- grep(&quot;^integrated_snn&quot;, metadata_cols, value = TRUE)
+cd8@meta.data &lt;- cd8@meta.data[, !(metadata_cols %in% cols_to_remove)]</code></pre>
+<pre class="r"><code>#Start reclustering
+cd8 &lt;- Seurat::FindNeighbors(cd8, dims = 1:15, reduction = &quot;pca&quot;)</code></pre>
+<pre class="r"><code>#Testing Resolutions
+names(cd8@assays)</code></pre>
+<pre><code>[1] &quot;RNA&quot;                          &quot;HTO&quot;                         
+[3] &quot;ADT&quot;                          &quot;SCT&quot;                         
+[5] &quot;integrated&quot;                   &quot;prediction.score.celltype.l1&quot;
+[7] &quot;prediction.score.celltype.l2&quot; &quot;prediction.score.celltype.l3&quot;</code></pre>
+<pre class="r"><code>DefaultAssay(cd8) &lt;- &quot;integrated&quot;
+cd8 &lt;- Seurat::FindClusters(cd8, resolution = seq(0.1, 0.8, by=0.1), n.neighbors = 10) </code></pre>
+<pre><code>Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.9307
+Number of communities: 3
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8980
+Number of communities: 4
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8733
+Number of communities: 5
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8564
+Number of communities: 7
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8406
+Number of communities: 7
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8263
+Number of communities: 8
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8144
+Number of communities: 9
+Elapsed time: 0 seconds
+Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+
+Number of nodes: 4568
+Number of edges: 162355
+
+Running Louvain algorithm...
+Maximum modularity in 10 random starts: 0.8026
+Number of communities: 10
+Elapsed time: 0 seconds</code></pre>
+<pre class="r"><code>table(cd8@meta.data$HTO_classification.global)</code></pre>
+<pre><code>
+Singlet 
+   4568 </code></pre>
+<pre class="r"><code>library(clustree)
+clustree::clustree(cd8@meta.data[,grep(&quot;integrated_snn_res&quot;, colnames(cd8@meta.data))],
+                   prefix = &quot;integrated_snn_res.&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-43-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Seurat::DimPlot(cd8, group.by = &quot;integrated_snn_res.0.1&quot;)</code></pre>
+<p><img src="figure/ReclusteringTCells.Rmd/unnamed-chunk-44-1.png" width="4200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Set identity of each cell based on resolution of 0.1
+cd8 &lt;- Seurat::SetIdent(cd8, value = cd8$integrated_snn_res.0.1)
+DefaultAssay(cd8) &lt;- &quot;RNA&quot;
+#change directory to save
+saveRDS(cd8, here::here(output_dir_data, &quot;cd8_tcells_reclustered.rds&quot;))</code></pre>
+<pre class="r"><code>SessionInfo()</code></pre>
+<pre><code>Error in SessionInfo(): could not find function &quot;SessionInfo&quot;</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.4.2 (2024-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.1 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
+LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] clustree_0.5.1              ggraph_2.2.1               
+ [3] scCustomize_2.1.2           here_1.0.1                 
+ [5] enrichplot_1.24.4           clusterProfiler_4.12.6     
+ [7] pathview_1.44.0             MAST_1.30.0                
+ [9] rsvd_1.0.5                  NMF_0.28                   
+[11] cluster_2.1.6               rngtools_1.5.2             
+[13] registry_0.5-1              data.table_1.16.2          
+[15] reshape2_1.4.4              GGally_2.2.1               
+[17] statmod_1.5.0               scater_1.32.0              
+[19] speckle_1.4.0               RColorBrewer_1.1-3         
+[21] SeuratData_0.2.2.9001       lubridate_1.9.3            
+[23] forcats_1.0.0               stringr_1.5.1              
+[25] purrr_1.0.2                 tidyr_1.3.1                
+[27] tibble_3.2.1                tidyverse_2.0.0            
+[29] EnhancedVolcano_1.22.0      ggrepel_0.9.5              
+[31] scuttle_1.13.1              cowplot_1.1.3              
+[33] patchwork_1.2.0             scDblFinder_1.18.0         
+[35] SingleCellExperiment_1.26.0 SummarizedExperiment_1.34.0
+[37] Biobase_2.64.0              GenomicRanges_1.56.1       
+[39] GenomeInfoDb_1.40.1         IRanges_2.38.0             
+[41] S4Vectors_0.42.0            BiocGenerics_0.50.0        
+[43] MatrixGenerics_1.16.0       matrixStats_1.3.0          
+[45] sctransform_0.4.1           limma_3.62.2               
+[47] BiocManager_1.30.25         hdf5r_1.3.11               
+[49] Seurat_5.1.0                SeuratObject_5.0.2         
+[51] sp_2.1-4                    ggplot2_3.5.1              
+[53] dplyr_1.1.4                 readr_2.1.5                
+[55] workflowr_1.7.1            
+
+loaded via a namespace (and not attached):
+  [1] goftest_1.2-3             Biostrings_2.72.1        
+  [3] vctrs_0.6.5               spatstat.random_3.3-2    
+  [5] shape_1.4.6.1             digest_0.6.37            
+  [7] png_0.1-8                 git2r_0.35.0             
+  [9] deldir_2.0-4              parallelly_1.37.1        
+ [11] MASS_7.3-61               httpuv_1.6.15            
+ [13] foreach_1.5.2             qvalue_2.36.0            
+ [15] withr_3.0.2               ggrastr_1.0.2            
+ [17] ggfun_0.1.5               xfun_0.48                
+ [19] survival_3.7-0            memoise_2.0.1            
+ [21] ggbeeswarm_0.7.2          janitor_2.2.0            
+ [23] gson_0.1.0                GlobalOptions_0.1.2      
+ [25] tidytree_0.4.6            zoo_1.8-12               
+ [27] KEGGgraph_1.64.0          pbapply_1.7-2            
+ [29] rematch2_2.1.2            KEGGREST_1.44.0          
+ [31] promises_1.3.0            httr_1.4.7               
+ [33] restfulr_0.0.15           globals_0.16.3           
+ [35] fitdistrplus_1.1-11       ps_1.8.1                 
+ [37] rstudioapi_0.17.1         UCSC.utils_1.0.0         
+ [39] miniUI_0.1.1.1            generics_0.1.3           
+ [41] DOSE_3.30.1               processx_3.8.4           
+ [43] curl_5.2.3                zlibbioc_1.50.0          
+ [45] ScaledMatrix_1.12.0       polyclip_1.10-7          
+ [47] GenomeInfoDbData_1.2.12   SparseArray_1.4.8        
+ [49] xtable_1.8-4              doParallel_1.0.17        
+ [51] evaluate_1.0.1            S4Arrays_1.4.1           
+ [53] hms_1.1.3                 irlba_2.3.5.1            
+ [55] colorspace_2.1-1          ROCR_1.0-11              
+ [57] reticulate_1.38.0         spatstat.data_3.1-2      
+ [59] snakecase_0.11.1          magrittr_2.0.3           
+ [61] lmtest_0.9-40             Rgraphviz_2.48.0         
+ [63] glmGamPoi_1.16.0          ggtree_3.12.0            
+ [65] later_1.3.2               viridis_0.6.5            
+ [67] lattice_0.22-6            spatstat.geom_3.3-3      
+ [69] future.apply_1.11.2       getPass_0.2-4            
+ [71] shadowtext_0.1.3          scattermore_1.2          
+ [73] XML_3.99-0.17             RcppAnnoy_0.0.22         
+ [75] pillar_1.9.0              nlme_3.1-166             
+ [77] iterators_1.0.14          gridBase_0.4-7           
+ [79] compiler_4.4.2            beachmat_2.18.1          
+ [81] RSpectra_0.16-1           stringi_1.8.4            
+ [83] tensor_1.5                GenomicAlignments_1.40.0 
+ [85] plyr_1.8.9                crayon_1.5.3             
+ [87] abind_1.4-8               BiocIO_1.14.0            
+ [89] gridGraphics_0.5-1        locfit_1.5-9.9           
+ [91] graphlayouts_1.1.1        org.Hs.eg.db_3.19.1      
+ [93] bit_4.5.0                 fastmatch_1.1-4          
+ [95] whisker_0.4.1             codetools_0.2-20         
+ [97] BiocSingular_1.20.0       bslib_0.8.0              
+ [99] paletteer_1.6.0           plotly_4.10.4            
+[101] mime_0.12                 splines_4.4.2            
+[103] circlize_0.4.16           Rcpp_1.0.13              
+[105] fastDummies_1.7.3         sparseMatrixStats_1.16.0 
+[107] HDO.db_0.99.1             knitr_1.48               
+[109] blob_1.2.4                utf8_1.2.4               
+[111] fs_1.6.5                  checkmate_2.3.1          
+[113] listenv_0.9.1             DelayedMatrixStats_1.26.0
+[115] ggplotify_0.1.2           Matrix_1.7-1             
+[117] callr_3.7.6               tzdb_0.4.0               
+[119] tweenr_2.0.3              pkgconfig_2.0.3          
+[121] tools_4.4.2               cachem_1.1.0             
+[123] RSQLite_2.3.7             viridisLite_0.4.2        
+[125] DBI_1.2.3                 fastmap_1.2.0            
+[127] rmarkdown_2.28            scales_1.3.0             
+[129] grid_4.4.2                ica_1.0-3                
+[131] Rsamtools_2.20.0          sass_0.4.9               
+[133] ggprism_1.0.5             ggstats_0.6.0            
+[135] dotCall64_1.1-1           graph_1.82.0             
+[137] RANN_2.6.1                farver_2.1.2             
+[139] scatterpie_0.2.3          tidygraph_1.3.1          
+[141] yaml_2.3.10               rtracklayer_1.64.0       
+[143] cli_3.6.3                 leiden_0.4.3.1           
+[145] lifecycle_1.0.4           uwot_0.2.2               
+[147] backports_1.5.0           bluster_1.14.0           
+[149] BiocParallel_1.38.0       timechange_0.3.0         
+[151] gtable_0.3.6              rjson_0.2.21             
+[153] ggridges_0.5.6            progressr_0.14.0         
+[155] ape_5.8                   parallel_4.4.2           
+[157] jsonlite_1.8.9            edgeR_4.2.0              
+[159] RcppHNSW_0.6.0            bitops_1.0-7             
+[161] bit64_4.5.2               xgboost_1.7.7.1          
+[163] Rtsne_0.17                yulab.utils_0.1.7        
+[165] spatstat.utils_3.1-0      BiocNeighbors_1.22.0     
+[167] highr_0.11                jquerylib_0.1.4          
+[169] metapod_1.12.0            GOSemSim_2.30.0          
+[171] dqrng_0.4.1               spatstat.univar_3.0-0    
+[173] lazyeval_0.2.2            shiny_1.9.1              
+[175] htmltools_0.5.8.1         GO.db_3.19.1             
+[177] rappdirs_0.3.3            glue_1.8.0               
+[179] spam_2.10-0               XVector_0.44.0           
+[181] RCurl_1.98-1.14           treeio_1.28.0            
+[183] rprojroot_2.0.4           scran_1.32.0             
+[185] gridExtra_2.3             igraph_2.1.1             
+[187] R6_2.5.1                  labeling_0.4.3           
+[189] aplot_0.2.3               DelayedArray_0.30.1      
+[191] tidyselect_1.2.1          vipor_0.4.7              
+[193] ggforce_0.4.2             AnnotationDbi_1.66.0     
+[195] future_1.33.2             munsell_0.5.1            
+[197] KernSmooth_2.23-24        htmlwidgets_1.6.4        
+[199] fgsea_1.30.0              rlang_1.1.4              
+[201] spatstat.sparse_3.1-0     spatstat.explore_3.3-3   
+[203] fansi_1.0.6               beeswarm_0.4.0           </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
