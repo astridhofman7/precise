@@ -9,7 +9,7 @@ editor_options:
 
 # Set-Up: Libraries, Loading Objects
 
-```{r}
+```{r setup, class.source = "fold-hide"}
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -47,6 +47,17 @@ library(here)
 library(scCustomize)
 
 set.seed(42)
+
+#Output paths
+current_file <- "ReclusteringTCells"
+
+output_dir_data <- here::here("output", current_file)
+if (!dir.exists(output_dir_data)) dir.create(output_dir_data, recursive = TRUE)
+
+if (!dir.exists(here::here("docs", "figure"))) dir.create(here::here("docs", "figure"))
+
+output_dir_figs <- here::here("docs", "figure", paste0(current_file, ".Rmd"))
+if (!dir.exists(output_dir_figs)) dir.create(output_dir_figs, recursive = TRUE)
 ```
 
 ```{r knitr config, include=FALSE, cache=FALSE}
@@ -61,25 +72,13 @@ knitr::opts_chunk$set(dpi = 600, fig.align = "center")
 
 ```
 
-```{r error=TRUE, echo=TRUE}
-#Output paths
-current_file <- "ReclusteringTCells"
-
-output_dir_data <- here::here("output", current_file)
-if (!dir.exists(output_dir_data)) dir.create(output_dir_data, recursive = TRUE)
-
-if (!dir.exists(here::here("docs", "figure"))) dir.create(here::here("docs", "figure"))
-
-output_dir_figs <- here::here("docs", "figure", paste0(current_file, ".Rmd"))
-if (!dir.exists(output_dir_figs)) dir.create(output_dir_figs, recursive = TRUE)
-
-``` 
+# Load Dataset
 
 ```{r error=TRUE}
 Reg_vs_Prog <- readRDS("/data/ashofm/PRECISE/Reg_vs_Prog/ExcludingP014/Reg_vs_Prog_Final_Reclustered_exclP014.RDS")
 ``` 
 
-##UMAP for Regressors vs. Progressors 
+## UMAP for Regressors vs. Progressors - Visualization
 
 ```{r error=TRUE, echo=T, results='hide'}
 new.cluster.ids <- c("Monocytes", "Monocytes", "CD4+ T-Cells", "CD8+ T-Cells", "Natural Killer Cells", "CD4+ T-Cells" ,"B-Cells","Monocytes", "CD8+ T-Cells", "CD4+ T-Cells", "B-Cells", "Natural Killer Cells", "Dendritic Cells", "B-Cells", 
@@ -99,12 +98,10 @@ labelled
 ```
 
 ```{r error=TRUE}
-
 DimPlot(Reg_vs_Prog, reduction = "umap", group.by = "integrated_snn_res.0.4", label = T)
-
-
 ```
-#Subset for Only T Cells 
+
+# Subset for Only T Cells 
 
 ```{r error=TRUE}
 #Subset for T cells 
@@ -119,8 +116,10 @@ tcells@assays$RNA
 
 DimPlot(tcells, reduction = "umap")
 ```
-#Reclustering of all T cells 
-```{r error=TRUE}
+
+# Reclustering of all T cells 
+
+```{r eval=FALSE, message=FALSE}
 tcells <- Seurat::FindVariableFeatures(tcells,
                            selection.method = "vst",
                           nfeatures = 2000)
@@ -144,12 +143,16 @@ DefaultAssay(tcells) <- "RNA"
 
 ```
 
-```{r error=TRUE}
+# PCA 
+
+```{r eval=FALSE}
 Seurat::DimPlot(tcells, reduction = "pca")
 ```
-```{r error=TRUE}
+
+```{r}
 Seurat::ElbowPlot(tcells, ndims = 50)
 ```
+
 ```{r error=TRUE, echo=TRUE}
 tcells <- Seurat::RunUMAP(tcells, dims = 1:15)
 Seurat::DimPlot(tcells, reduction = "umap", group.by = "hash.ID")
@@ -158,7 +161,7 @@ Seurat::DimPlot(tcells, reduction = "umap", group.by = "HTO_classification.globa
 
 ```
 
-```{r error=TRUE}
+```{r eval=FALSE}
 #Remove columns with resolution
 metadata_cols <- colnames(tcells@meta.data)
 cols_to_remove <- grep("^RNA_snn_", metadata_cols, value = TRUE)
@@ -169,11 +172,12 @@ cols_to_remove <- grep("^integrated_snn", metadata_cols, value = TRUE)
 tcells@meta.data <- tcells@meta.data[, !(metadata_cols %in% cols_to_remove)]
 ```
 
-```{r error=TRUE}
+```{r eval=FALSE}
 #Start reclustering
 tcells <- Seurat::FindNeighbors(tcells, dims = 1:15, reduction = "pca")
 ```
-```{r error=TRUE}
+
+```{r}
 #Testing Resolutions
 names(tcells@assays)
 DefaultAssay(tcells) <- "integrated"
@@ -193,6 +197,7 @@ clustree::clustree(tcells@meta.data[,grep("integrated_snn_res", colnames(tcells@
 Seurat::DimPlot(tcells, reduction = "umap", group.by = "integrated_snn_res.0.2")
 
 ```
+
 ```{r error=TRUE}
 #Set identity of each cell based on resolution of 0.2
 tcells <- Seurat::SetIdent(tcells, value = tcells$integrated_snn_res.0.2)
@@ -234,7 +239,7 @@ DimPlot(cd4, reduction = "umap")
 
 #Reclustering of CD4 T cells
 
-```{r error=TRUE}
+```{r eval=FALSE, message=FALSE}
 cd4 <- Seurat::FindVariableFeatures(cd4,
                            selection.method = "vst",
                           nfeatures = 2000)
@@ -258,13 +263,15 @@ DefaultAssay(cd4) <- "RNA"
 
 ```
 
-```{r error=TRUE}
+```{r eval=FALSE}
 Seurat::DimPlot(cd4, reduction = "pca")
 ```
-```{r error=TRUE}
+
+```{r eval=FALSE}
 Seurat::ElbowPlot(cd4, ndims = 50)
 ```
-```{r error=TRUE, echo=TRUE}
+
+```{r eval=FALSE}
 cd4 <- Seurat::RunUMAP(cd4, dims = 1:15)
 Seurat::DimPlot(cd4, reduction = "umap", group.by = "hash.ID")
 Seurat::DimPlot(cd4, reduction = "umap", group.by = "HTO_maxID")
@@ -272,7 +279,7 @@ Seurat::DimPlot(cd4, reduction = "umap", group.by = "HTO_classification.global")
 
 ```
 
-```{r error=TRUE}
+```{r eval=FALSE}
 #Remove columns with resolution
 metadata_cols <- colnames(cd4@meta.data)
 cols_to_remove <- grep("^RNA_snn_", metadata_cols, value = TRUE)
@@ -283,11 +290,12 @@ cols_to_remove <- grep("^integrated_snn", metadata_cols, value = TRUE)
 cd4@meta.data <- cd4@meta.data[, !(metadata_cols %in% cols_to_remove)]
 ```
 
-```{r error=TRUE}
+```{r eval=FALSE}
 #Start reclustering
 cd4 <- Seurat::FindNeighbors(cd4, dims = 1:15, reduction = "pca")
 ```
-```{r error=TRUE}
+
+```{r eval=FALSE}
 #Testing Resolutions
 names(cd4@assays)
 DefaultAssay(cd4) <- "integrated"
